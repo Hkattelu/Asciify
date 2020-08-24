@@ -7,13 +7,17 @@ use structopt::StructOpt;
 
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "asciify", about = "Convert images to ascii images")]
+#[structopt(name = "asciify", about = "Convert images to ascii text")]
 struct Opt {
-    /// Use deep grey scale
+    /// Use a deeper selection of ascii characters
     #[structopt(short, long)]
     deep: bool,
 
-    /// Use inverted colors
+    /// Use the image color when printing to console
+    #[structopt(short, long)]
+    color: bool,
+
+    /// Invert the opacity of the image
     #[structopt(short, long)]
     invert: bool,
 
@@ -28,13 +32,9 @@ struct Opt {
 
 fn main() {
     let opt = Opt::from_args();
-    let path = opt.input;
-    let deep = opt.deep;
-    let invert = opt.invert;
-
-    let mut builder: AsciiBuilder = AsciiBuilder::new(path);
-    builder.set_deep(deep);
-    builder.set_invert(invert);
+    let mut builder: AsciiBuilder = AsciiBuilder::new(opt.input);
+    builder.set_deep(opt.deep);
+    builder.set_invert(opt.invert);
 
     if let Some(dimensions) = opt.resize {
         if dimensions.len() != 2 {
@@ -43,5 +43,5 @@ fn main() {
         builder.set_resize((dimensions[0], dimensions[1]));   
     }
 
-    println!("{}", builder.build());
+    builder.to_std_out(opt.color);
 }
