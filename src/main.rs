@@ -43,27 +43,17 @@ struct Opt {
 fn brightness(pixel: &Rgba<u8>) -> f32 {
     let avg_rgb: f32 = (((pixel[0] as u16) + (pixel[1] as u16) + (pixel[2] as u16)) as f32) / 3.0;
     let opacity: f32 = (pixel[ALPHA_INDEX] as f32) / 255.0;
-    // We can cast to f32 since the opacity is between 0 and 1
+    // We can cast to f32 since the brightness is between 0 and 1
     (avg_rgb * opacity) / 255.0 as f32
 }
 
 fn ascii_char_for_brightness(brightness: f32, deep: bool, invert: bool) -> char {
-    // We can cast to f32 since the brightness is between 0 and 1
-    if deep {
-        let index = (brightness * 64.9) as usize;
-        if invert {
-            DEEP_GREY_SCALE[64 - index]
-        } else {
-            DEEP_GREY_SCALE[index]
-        }
-    } else {
-        let index = (brightness * 9.9) as usize;
-        if invert {
-            SHALLOW_GREY_SCALE[9 - index]
-        } else {
-            SHALLOW_GREY_SCALE[index]
-        }
-    }
+    let epsilon = 0.000001;
+    let max_index = if deep {64} else {9};
+    let scale = (max_index as f32) + 1.0 - epsilon;
+    let scaled = (brightness * scale) as usize;
+    let index = if invert { max_index - scaled } else { scaled };
+    if deep { DEEP_GREY_SCALE[index] } else { SHALLOW_GREY_SCALE[index] }
 }
 
 fn pixel_to_ascii_char(pixel: &Rgba<u8>, deep: bool, invert: bool) -> char {
@@ -80,16 +70,9 @@ fn main() {
     let loaded = image::load(image_reader, image::ImageFormat::from_path(&path).unwrap()).unwrap();
     let rgba_image = loaded.to_rgba();
     let rows = rgba_image.rows();
-    let transformed_rows = rows
-        .map(|row| {
-            row.map(|x| pixel_to_ascii_char(x, deep, invert))
-                .collect::<Vec<char>>()
-        })
-        .collect::<Vec<Vec<char>>>();
-
-    let lines = transformed_rows
-        .into_iter()
-        .map(|char_vec| char_vec.into_iter().collect::<String>())
+    let lines = rows
+        .map(|row| row.map(|x| pixel_to_ascii_char(x, deep, invert)))
+        .map(|char_vec| char_vec.collect::<String>())
         .collect::<Vec<String>>();
 
     let merged = lines.into_iter().collect::<Vec<String>>().join("\n");
