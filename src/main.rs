@@ -2,6 +2,7 @@ extern crate image;
 extern crate structopt;
 
 use image::Rgba;
+use image::imageops::FilterType;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
@@ -32,7 +33,11 @@ struct Opt {
     #[structopt(short, long)]
     invert: bool,
 
-    /// Input file
+    /// The comma-separated width and height to resize the image to
+    #[structopt(short, long)]
+    resize: Option<Vec<u32>>,
+
+    /// Input image to print
     #[structopt(parse(from_os_str))]
     input: PathBuf,
 }
@@ -67,11 +72,22 @@ fn main() {
     let invert = opt.invert;
     let file = File::open(&path).unwrap();
     let image_reader = BufReader::new(file);
-    let loaded = image::load(image_reader, image::ImageFormat::from_path(&path).unwrap()).unwrap();
+    let mut loaded = image::load(image_reader, image::ImageFormat::from_path(&path).unwrap()).unwrap();
+    
+    // This makes the image more crisp in ascii form by making the borders darker
+    loaded.invert();    
+
+    if let Some(dimensions) = opt.resize {
+        if dimensions.len() != 2 {
+            panic!("Must provide exactly two numbers to resize for width and height. Provided {} arguments", dimensions.len());
+        }
+        loaded = loaded.resize(dimensions[0], dimensions[1], FilterType::Nearest);
+    }
+
     let rgba_image = loaded.to_rgba();
     let rows = rgba_image.rows();
     let lines = rows
-        .map(|row| row.map(|x| pixel_to_ascii_char(x, deep, invert)))
+        .map(|row| row.map(|pixel| pixel_to_ascii_char(pixel, deep, invert)))
         .map(|char_vec| char_vec.collect::<String>())
         .collect::<Vec<String>>();
 
