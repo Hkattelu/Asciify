@@ -5,9 +5,12 @@ use asciify::AsciiBuilder;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
+const ABOUT: &str = r"
+    Convert images to ascii text. Written in Rust. 
+";
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "asciify", about = "Convert images to ascii text")]
+#[structopt(name = "asciify", about = ABOUT)]
 struct Opt {
     /// Use a deeper selection of ascii characters
     #[structopt(short, long)]
@@ -21,7 +24,7 @@ struct Opt {
     #[structopt(short, long)]
     invert: bool,
 
-    /// The comma-separated width and height to resize the image to
+    /// The space-separated width and height to resize the image to
     #[structopt(short, long)]
     resize: Option<Vec<u32>>,
 
