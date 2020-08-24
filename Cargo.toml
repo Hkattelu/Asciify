@@ -4,6 +4,10 @@ version = "0.1.0"
 authors = ["hkattelu"]
 edition = "2018"
 
+[lib]
+name = "asciify"
+path = "src/lib.rs"
+
 [dependencies]
 image = "0.23.8"
 structopt = "0.3.16"
