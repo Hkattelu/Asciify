@@ -32,15 +32,15 @@ struct Opt {
 
 fn main() {
     let opt = Opt::from_args();
-    let mut builder: AsciiBuilder = AsciiBuilder::new(opt.input);
-    builder.set_deep(opt.deep);
-    builder.set_invert(opt.invert);
+    let mut builder = AsciiBuilder::new(opt.input)
+        .set_deep(opt.deep)
+        .set_invert(opt.invert);
 
     if let Some(dimensions) = opt.resize {
         if dimensions.len() != 2 {
             panic!("Must provide exactly two numbers to resize for width and height. Provided {} arguments", dimensions.len());
         }
-        builder.set_resize((dimensions[0], dimensions[1]));   
+        builder = builder.set_resize((dimensions[0], dimensions[1]));   
     }
 
     builder.to_std_out(opt.color);

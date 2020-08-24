@@ -9,10 +9,10 @@ use std::io::{BufReader, Write};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 /** The ascii characters to use in order of dark to bright with a 10 character precision */
-const SHALLOW_GREY_SCALE: [char; 10] = [' ', '.', ':', '-', '=', '+', '*', '#', '%', '@'];
+const SHALLOW_GRAY_SCALE: [char; 10] = [' ', '.', ':', '-', '=', '+', '*', '#', '%', '@'];
 
 /** The ascii characters to use in order of dark to bright with a 65 character precision */
-const DEEP_GREY_SCALE: [char; 65] = [
+const DEEP_GRAY_SCALE: [char; 65] = [
     ' ', '`', '^', '"', ',', ':', ';', 'I', 'l', '!', 'i', '~', '+', '_', '-', '?', ']', '[', '}',
     '{', '1', ')', '(', '|', '/', 't', 'f', 'j', 'r', 'x', 'n', 'u', 'v', 'c', 'z', 'X', 'Y', 'U',
     'J', 'C', 'L', 'Q', '0', 'O', 'Z', 'm', 'w', 'q', 'p', 'd', 'b', 'k', 'h', 'a', 'o', '*', '#',
@@ -64,12 +64,12 @@ pub fn colored_point_for_pixel(pixel: &Rgba<u8>) -> AsciiPoint {
 
 /** Fetches the corresponding ascii character to represent the provided brightness */
 pub fn ascii_char_for_point(point: AsciiPoint, deep: bool, invert: bool) -> char {
-    let epsilon = 0.000001;
+    let epsilon = 0.0001;
     let max_index = if deep {64} else {9};
     let scale = (max_index as f32) + 1.0 - epsilon;
-    let scaled = (point.brightness * scale) as usize;
+    let scaled = (point.brightness * scale).floor() as usize;
     let index = if invert { max_index - scaled } else { scaled };
-    if deep { DEEP_GREY_SCALE[index] } else { SHALLOW_GREY_SCALE[index] }
+    if deep { DEEP_GRAY_SCALE[index] } else { SHALLOW_GRAY_SCALE[index] }
 }
 
 pub struct AsciiBuilder {
@@ -89,24 +89,52 @@ impl AsciiBuilder {
         }
     }
 
-    pub fn set_deep(&mut self, deep: bool) -> &AsciiBuilder {
-        self.deep = deep;
-        return self;
+    pub fn set_deep(&self, deep: bool) -> AsciiBuilder {
+        let path = PathBuf::from(self.path.as_path());
+        let mut builder = AsciiBuilder {
+            path: path,
+            deep: self.deep,
+            invert: self.invert,
+            resize: self.resize,
+        };
+        builder.deep = deep;
+        return builder;
     }
 
-    pub fn set_invert(&mut self, invert: bool) -> &AsciiBuilder {
-        self.invert = invert;
-        return self;
+    pub fn set_invert(&mut self, invert: bool) -> AsciiBuilder {
+        let path = PathBuf::from(self.path.as_path());
+        let mut builder = AsciiBuilder {
+            path: path,
+            deep: self.deep,
+            invert: self.invert,
+            resize: self.resize,
+        };
+        builder.invert = invert;
+        return builder;
     }
 
-    pub fn set_resize(&mut self, resize: (u32, u32)) -> &AsciiBuilder {
-        self.resize = Some(resize);
-        return self;
+    pub fn set_resize(&mut self, resize: (u32, u32)) -> AsciiBuilder {
+        let path = PathBuf::from(self.path.as_path());
+        let mut builder = AsciiBuilder {
+            path: path,
+            deep: self.deep,
+            invert: self.invert,
+            resize: self.resize,
+        };
+        builder.resize = Some(resize);
+        return builder;
     }
 
-    pub fn clear_resize(&mut self) -> &AsciiBuilder {
-        self.resize = None;
-        return self;
+    pub fn clear_resize(&mut self) -> AsciiBuilder {
+        let path = PathBuf::from(self.path.as_path());
+        let mut builder = AsciiBuilder {
+            path: path,
+            deep: self.deep,
+            invert: self.invert,
+            resize: self.resize,
+        };
+        builder.resize = None;
+        return builder;
     }
 
     pub fn build(&self) -> String {
