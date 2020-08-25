@@ -1,8 +1,14 @@
 [package]
 name = "asciify"
 version = "0.1.0"
-authors = ["hkattelu"]
+authors = ["Himanshu Kattelu <himanshukattelu@gmail.com>"]
 edition = "2018"
+readme = "README.md"
+repository = "https://github.com/Hkattelu/Asciify"
+license-file = "LICENSE"
+keywords = ["ascii", "images"]
+description = "A rust library for converting images to a readable format on the command line"
+
 
 [lib]
 name = "asciify"

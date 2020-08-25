@@ -143,7 +143,7 @@ impl AsciiBuilder {
         let mut loaded = image::load(image_reader, image::ImageFormat::from_path(&self.path).unwrap()).unwrap();
 
         if let Some(dimensions) = self.resize {
-            loaded = loaded.resize(dimensions.0, dimensions.1, FilterType::Nearest);
+            loaded = loaded.resize_exact(dimensions.0, dimensions.1, FilterType::Nearest);
         }
 
         let rgba_image = loaded.to_rgba();
@@ -163,7 +163,7 @@ impl AsciiBuilder {
         let mut loaded = image::load(image_reader, image::ImageFormat::from_path(&self.path).unwrap()).unwrap();
 
         if let Some(dimensions) = self.resize {
-            loaded = loaded.resize(dimensions.0, dimensions.1, FilterType::Nearest);
+            loaded = loaded.resize_exact(dimensions.0, dimensions.1, FilterType::Nearest);
         }
 
         let rgba_image = loaded.to_rgba();
