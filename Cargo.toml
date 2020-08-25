@@ -11,6 +11,7 @@ description = "A rust library for converting images to a readable format on the 
 exclude = [
     "images/*",
     "test-images/*",
+    "src/main.rs",
 ]
 
 [lib]
