@@ -21,7 +21,7 @@ AsciiBuilder::new(opt.input)
     .to_std_out(true);
 ```
 
-![Ascii chocobo](./images/ascii-chocobo.PNG)
+![Ascii chocobo](https://github.com/Hkattelu/Asciify/blob/HEAD/images/ascii-chocobo.PNG)
 
 ```rust
 // Generating a string and resizing
@@ -31,11 +31,11 @@ AsciiBuilder::new(opt.input)
     .build();
 ```
 
-![Ascii chocobo after resizing](./images/ascii-chocobo-resized.PNG)
+![Ascii chocobo after resizing](https://github.com/Hkattelu/Asciify/blob/HEAD/images/ascii-chocobo-resized.PNG)
 
 
 ```shell
 $ ./asciify ./test-images/SPECIAL(ChocoboA)900.png -c
 ```
 
-![Ascii chocobo with color](./images/ascii-chocobo-color.PNG)
+![Ascii chocobo with color](https://github.com/Hkattelu/Asciify/blob/HEAD/images/ascii-chocobo-color.PNG)
