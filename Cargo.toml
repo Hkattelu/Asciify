@@ -1,6 +1,6 @@
 [package]
 name = "asciify"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Himanshu Kattelu <himanshukattelu@gmail.com>"]
 edition = "2018"
 readme = "README.md"
@@ -9,7 +9,6 @@ license-file = "LICENSE"
 keywords = ["ascii", "images"]
 description = "A rust library for converting images to a readable format on the command line"
 exclude = [
-    "images/*",
     "test-images/*",
     "src/main.rs",
 ]
