@@ -8,7 +8,10 @@ repository = "https://github.com/Hkattelu/Asciify"
 license-file = "LICENSE"
 keywords = ["ascii", "images"]
 description = "A rust library for converting images to a readable format on the command line"
-
+exclude = [
+    "images/*",
+    "test-images/*",
+]
 
 [lib]
 name = "asciify"
