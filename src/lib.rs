@@ -1,7 +1,7 @@
 extern crate image;
 
 use image::Rgba;
-
+use image::buffer::Rows;
 use std::fs::File;
 use std::path::PathBuf;
 use image::imageops::FilterType;
@@ -22,7 +22,7 @@ const DEEP_GRAY_SCALE: [char; 65] = [
 /** Index of the alpha channel of a pixel */
 const ALPHA_INDEX: usize = 3;
 
-pub enum ColorType {
+enum ColorType {
     Grayscale,
     Colored(Color),
 }
@@ -138,17 +138,8 @@ impl AsciiBuilder {
     }
 
     pub fn build(&self) -> String {
-        let file = File::open(&self.path).unwrap();
-        let image_reader = BufReader::new(file);
-        let mut loaded = image::load(image_reader, image::ImageFormat::from_path(&self.path).unwrap()).unwrap();
-
-        if let Some(dimensions) = self.resize {
-            loaded = loaded.resize_exact(dimensions.0, dimensions.1, FilterType::Nearest);
-        }
-
-        let rgba_image = loaded.to_rgba();
-        let rows = rgba_image.rows();
-        let lines = rows
+        let img = self.get_img().to_rgba();
+        let lines = img.rows()
             .map(|row| row.map(|pixel| ascii_char_for_point(gray_point_for_pixel(pixel), self.deep, self.invert)))
             .map(|char_vec| char_vec.collect::<String>())
             .collect::<Vec<String>>();
@@ -158,19 +149,10 @@ impl AsciiBuilder {
 
     pub fn to_std_out(&self, use_color: bool) {
         let mut stdout = StandardStream::stdout(ColorChoice::Always);
-        let file = File::open(&self.path).unwrap();
-        let image_reader = BufReader::new(file);
-        let mut loaded = image::load(image_reader, image::ImageFormat::from_path(&self.path).unwrap()).unwrap();
-
-        if let Some(dimensions) = self.resize {
-            loaded = loaded.resize_exact(dimensions.0, dimensions.1, FilterType::Nearest);
-        }
-
-        let rgba_image = loaded.to_rgba();
-        let rows = rgba_image.rows();
-        rows
-            .map(|row| row.map(|pixel| if use_color { colored_point_for_pixel(pixel) } else { gray_point_for_pixel(pixel) }))
-            .for_each(|point_row| {
+        let img = self.get_img().to_rgba();
+        img.rows()
+           .map(|row| row.map(|pixel| if use_color { colored_point_for_pixel(pixel) } else { gray_point_for_pixel(pixel) }))
+           .for_each(|point_row| {
                 point_row.for_each(|point| {
                     let color = match point.color {
                         ColorType::Colored(point_color) => point_color,
@@ -182,5 +164,16 @@ impl AsciiBuilder {
                 writeln!(&mut stdout, "").unwrap();
             });
         stdout.flush().unwrap();
+    }
+
+    fn get_img(&self) -> image::DynamicImage {
+        let file = File::open(&self.path).unwrap();
+        let image_reader = BufReader::new(file);
+        let mut loaded = image::load(image_reader, image::ImageFormat::from_path(&self.path).unwrap()).unwrap();
+        if let Some(dimensions) = self.resize {
+            loaded = loaded.resize_exact(dimensions.0, dimensions.1, FilterType::Nearest);
+        }
+
+        loaded
     }
 }

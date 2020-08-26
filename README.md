@@ -4,7 +4,7 @@ A rust library for converting images to a readable format on the command line
 You can import the library straight from this git repo by adding 
 
 ```
-asciify = { git = "https://github.com/hkattelu/Asciify", branch = "master" }
+asciify = "0.1.4"
 ```
 
 to your `Cargo.toml`.
