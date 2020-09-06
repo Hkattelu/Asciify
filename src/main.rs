@@ -35,7 +35,7 @@ struct Opt {
 
 fn main() {
     let opt = Opt::from_args();
-    let mut builder = AsciiBuilder::new(opt.input)
+    let mut builder = AsciiBuilder::new_from_path(opt.input)
         .set_deep(opt.deep)
         .set_invert(opt.invert);
 

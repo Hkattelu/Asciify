@@ -1,7 +1,6 @@
 extern crate image;
 
-use image::Rgba;
-use image::buffer::Rows;
+use image::{Rgba, DynamicImage};
 use std::fs::File;
 use std::path::PathBuf;
 use image::imageops::FilterType;
@@ -73,72 +72,54 @@ pub fn ascii_char_for_point(point: AsciiPoint, deep: bool, invert: bool) -> char
 }
 
 pub struct AsciiBuilder {
-    path: PathBuf,
+    image: DynamicImage,
     deep: bool,
     invert: bool,
-    resize: Option<(u32, u32)>,
 }
 
 impl AsciiBuilder {
-    pub fn new(path: PathBuf) -> AsciiBuilder {
+    pub fn new_from_path(path: PathBuf) -> Self {
+        let file = File::open(&path).unwrap();
+        let image_reader = BufReader::new(file);
+        let loaded = image::load(image_reader, image::ImageFormat::from_path(&path).unwrap()).unwrap();
+
         AsciiBuilder {
-            path: path,
+            image: loaded,
             deep: false,
             invert: false,
-            resize: None,
         }
     }
 
-    pub fn set_deep(&self, deep: bool) -> AsciiBuilder {
-        let path = PathBuf::from(self.path.as_path());
-        let mut builder = AsciiBuilder {
-            path: path,
-            deep: self.deep,
-            invert: self.invert,
-            resize: self.resize,
-        };
-        builder.deep = deep;
-        return builder;
+    #[deprecated(since="0.1.5", note="please use `new_from_path` instead")]
+    pub fn new(path: PathBuf) -> Self {
+        Self::new_from_path(path)
     }
 
-    pub fn set_invert(&mut self, invert: bool) -> AsciiBuilder {
-        let path = PathBuf::from(self.path.as_path());
-        let mut builder = AsciiBuilder {
-            path: path,
-            deep: self.deep,
-            invert: self.invert,
-            resize: self.resize,
-        };
-        builder.invert = invert;
-        return builder;
+    pub fn new_from_image(image: DynamicImage) -> Self {
+        AsciiBuilder {
+            image,
+            deep: false,
+            invert: false
+        }
     }
 
-    pub fn set_resize(&mut self, resize: (u32, u32)) -> AsciiBuilder {
-        let path = PathBuf::from(self.path.as_path());
-        let mut builder = AsciiBuilder {
-            path: path,
-            deep: self.deep,
-            invert: self.invert,
-            resize: self.resize,
-        };
-        builder.resize = Some(resize);
-        return builder;
+    pub fn set_deep(mut self, deep: bool) -> Self {
+        self.deep = deep;
+        self
     }
 
-    pub fn clear_resize(&mut self) -> AsciiBuilder {
-        let path = PathBuf::from(self.path.as_path());
-        let mut builder = AsciiBuilder {
-            path: path,
-            deep: self.deep,
-            invert: self.invert,
-            resize: self.resize,
-        };
-        builder.resize = None;
-        return builder;
+    pub fn set_invert(mut self, invert: bool) -> Self {
+        self.invert = invert;
+        self
+    }
+
+    pub fn set_resize(mut self, resize: (u32, u32)) -> Self {
+        self.image = self.image.resize_exact(resize.0, resize.1, FilterType::Nearest);
+        self
     }
 
     pub fn build(&self) -> String {
-        let img = self.get_img().to_rgba();
+        let img = self.image.to_rgba();
         let lines = img.rows()
             .map(|row| row.map(|pixel| ascii_char_for_point(gray_point_for_pixel(pixel), self.deep, self.invert)))
             .map(|char_vec| char_vec.collect::<String>())
@@ -149,7 +130,7 @@ impl AsciiBuilder {
 
     pub fn to_std_out(&self, use_color: bool) {
         let mut stdout = StandardStream::stdout(ColorChoice::Always);
-        let img = self.get_img().to_rgba();
+        let img = self.image.to_rgba();
         img.rows()
            .map(|row| row.map(|pixel| if use_color { colored_point_for_pixel(pixel) } else { gray_point_for_pixel(pixel) }))
            .for_each(|point_row| {
@@ -164,16 +145,5 @@ impl AsciiBuilder {
                 writeln!(&mut stdout, "").unwrap();
             });
         stdout.flush().unwrap();
-    }
-
-    fn get_img(&self) -> image::DynamicImage {
-        let file = File::open(&self.path).unwrap();
-        let image_reader = BufReader::new(file);
-        let mut loaded = image::load(image_reader, image::ImageFormat::from_path(&self.path).unwrap()).unwrap();
-        if let Some(dimensions) = self.resize {
-            loaded = loaded.resize_exact(dimensions.0, dimensions.1, FilterType::Nearest);
-        }
-
-        loaded
     }
 }
