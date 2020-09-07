@@ -19,7 +19,7 @@ it to a string for later use:
 
 ```rust
 // Printing to console with color
-AsciiBuilder::new(opt.input)
+AsciiBuilder::new_from_path(opt.input)
     .set_deep(false);
     .set_invert(false);
     .to_std_out(true);
@@ -29,7 +29,7 @@ AsciiBuilder::new(opt.input)
 
 ```rust
 // Generating a string and resizing
-AsciiBuilder::new(opt.input)
+AsciiBuilder::new_from_path(opt.input)
     .set_deep(true);
     .set_resize(Some(32, 32));
     .build();
