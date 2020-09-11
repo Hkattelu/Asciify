@@ -5,10 +5,10 @@ use std::{fs::File, io::{Cursor, BufReader, Write}, path::PathBuf};
 use image::imageops::FilterType;
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
-/** The ascii characters to use in order of dark to bright with a 10 character precision */
+/// The ascii characters to use in order of dark to bright with a 10 character precision
 const SHALLOW_GRAY_SCALE: &[char] = &[' ', '.', ':', '-', '=', '+', '*', '#', '%', '@'];
 
-/** The ascii characters to use in order of dark to bright with a 65 character precision */
+/// The ascii characters to use in order of dark to bright with a 65 character precision
 const DEEP_GRAY_SCALE: &[char] = &[
     ' ', '`', '^', '"', ',', ':', ';', 'I', 'l', '!', 'i', '~', '+', '_', '-', '?', ']', '[', '}',
     '{', '1', ')', '(', '|', '/', 't', 'f', 'j', 'r', 'x', 'n', 'u', 'v', 'c', 'z', 'X', 'Y', 'U',
@@ -16,7 +16,7 @@ const DEEP_GRAY_SCALE: &[char] = &[
     'M', 'W', '&', '8', '%', 'B', '@', '$',
 ];
 
-/** Index of the alpha channel of a pixel */
+/// Index of the alpha channel of a pixel 
 const ALPHA_INDEX: usize = 3;
 
 enum ColorType {
@@ -29,7 +29,7 @@ pub struct AsciiPoint {
     brightness: f32,
 }
 
-/** Computes the brightness of the pixel as a number between 0 and 1 */
+/// Computes the brightness of the pixel as a number between 0 and 1
 pub fn compute_brightness(pixel: &Rgba<u8>) -> f32 {
     let avg_rgb: f32 = (((pixel[0] as u16) + (pixel[1] as u16) + (pixel[2] as u16)) as f32) / 3.0;
     let opacity: f32 = (pixel[ALPHA_INDEX] as f32) / 255.0;
@@ -37,10 +37,9 @@ pub fn compute_brightness(pixel: &Rgba<u8>) -> f32 {
     (avg_rgb * opacity) / 255.0 as f32
 }
 
-/** 
- * Create the information required to construct an ascii representation
- * of the provided pixel in grayscale 
- */
+
+/// Create the information required to construct an ascii representation
+/// of the provided pixel in grayscale 
 pub fn gray_point_for_pixel(pixel: &Rgba<u8>) -> AsciiPoint {
     AsciiPoint {
         brightness: compute_brightness(pixel),
@@ -48,10 +47,8 @@ pub fn gray_point_for_pixel(pixel: &Rgba<u8>) -> AsciiPoint {
     }
 }
 
-/** 
- * Create the information required to construct an ascii representation
- * of the provided pixel maintaining its color
- */
+ /// Create the information required to construct an ascii representation
+ /// of the provided pixel maintaining its color
 pub fn colored_point_for_pixel(pixel: &Rgba<u8>) -> AsciiPoint {
     AsciiPoint {
         brightness: compute_brightness(pixel),
@@ -59,7 +56,7 @@ pub fn colored_point_for_pixel(pixel: &Rgba<u8>) -> AsciiPoint {
     }
 }
 
-/** Fetches the corresponding ascii character to represent the provided brightness */
+/// Fetches the corresponding ascii character to represent the provided brightness
 pub fn ascii_char_for_point(point: AsciiPoint, deep: bool, invert: bool) -> char {
     let epsilon = 0.0001;
     let max_index = if deep {64} else {9};
