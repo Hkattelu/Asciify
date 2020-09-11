@@ -1,17 +1,15 @@
 extern crate image;
 
 use image::{Rgba, DynamicImage};
-use std::{fs::File, io::Cursor};
-use std::path::PathBuf;
+use std::{fs::File, io::{Cursor, BufReader, Write}, path::PathBuf};
 use image::imageops::FilterType;
-use std::io::{BufReader, Write};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 /** The ascii characters to use in order of dark to bright with a 10 character precision */
-const SHALLOW_GRAY_SCALE: [char; 10] = [' ', '.', ':', '-', '=', '+', '*', '#', '%', '@'];
+const SHALLOW_GRAY_SCALE: &[char] = &[' ', '.', ':', '-', '=', '+', '*', '#', '%', '@'];
 
 /** The ascii characters to use in order of dark to bright with a 65 character precision */
-const DEEP_GRAY_SCALE: [char; 65] = [
+const DEEP_GRAY_SCALE: &[char] = &[
     ' ', '`', '^', '"', ',', ':', ';', 'I', 'l', '!', 'i', '~', '+', '_', '-', '?', ']', '[', '}',
     '{', '1', ')', '(', '|', '/', 't', 'f', 'j', 'r', 'x', 'n', 'u', 'v', 'c', 'z', 'X', 'Y', 'U',
     'J', 'C', 'L', 'Q', '0', 'O', 'Z', 'm', 'w', 'q', 'p', 'd', 'b', 'k', 'h', 'a', 'o', '*', '#',
