@@ -1,7 +1,7 @@
 extern crate image;
 
 use image::{Rgba, DynamicImage};
-use std::fs::File;
+use std::{fs::File, io::Cursor};
 use std::path::PathBuf;
 use image::imageops::FilterType;
 use std::io::{BufReader, Write};
@@ -77,6 +77,17 @@ pub struct AsciiBuilder {
     invert: bool,
 }
 
+//This is a macro and not a function due to closure types
+macro_rules! impl_stream {
+    ($map:expr, $print:expr, $image:expr) => {{
+        let img = $image.to_rgba();
+        img.rows()
+           .map(|row| row.map($map))
+           .for_each($print);
+    }};
+}
+
+
 impl AsciiBuilder {
     pub fn new_from_path(path: PathBuf) -> Self {
         let file = File::open(&path).unwrap();
@@ -119,31 +130,54 @@ impl AsciiBuilder {
     }
 
     pub fn build(&self) -> String {
-        let img = self.image.to_rgba();
-        let lines = img.rows()
-            .map(|row| row.map(|pixel| ascii_char_for_point(gray_point_for_pixel(pixel), self.deep, self.invert)))
-            .map(|char_vec| char_vec.collect::<String>())
-            .collect::<Vec<String>>();
-
-        lines.into_iter().collect::<Vec<String>>().join("\n")
+        let mut buf = Vec::new();
+        let mut cursor = Cursor::new(&mut buf);
+        self.to_stream(&mut cursor); 
+        String::from_utf8(buf).unwrap()
     }
 
+    /// Writes the image to standard output
+    /// the image is formatted with ANSI colors if `use_color` is true
     pub fn to_std_out(&self, use_color: bool) {
         let mut stdout = StandardStream::stdout(ColorChoice::Always);
-        let img = self.image.to_rgba();
-        img.rows()
-           .map(|row| row.map(|pixel| if use_color { colored_point_for_pixel(pixel) } else { gray_point_for_pixel(pixel) }))
-           .for_each(|point_row| {
+        match use_color {
+            true => self.to_stream_colored(&mut stdout),
+            false => self.to_stream(&mut stdout)
+        }
+    }
+
+    /// Writes a colored version of the image to `stream` using ANSI code
+    pub fn to_stream_colored(&self, mut stream: &mut dyn WriteColor) {
+        impl_stream!(
+            |pixel| colored_point_for_pixel(pixel),
+            |point_row| {
                 point_row.for_each(|point| {
                     let color = match point.color {
                         ColorType::Colored(point_color) => point_color,
-                        ColorType::Grayscale => Color::White,
+                        ColorType::Grayscale => Color::White, //This should be unreachable, but i'll still keep it here to be sure
                     };
-                    stdout.set_color(ColorSpec::new().set_fg(Some(color))).unwrap();
-                    write!(&mut stdout, "{}", ascii_char_for_point(point, self.deep, self.invert)).unwrap();
+                    stream.set_color(ColorSpec::new().set_fg(Some(color))).unwrap();
+                    write!(&mut stream, "{}", ascii_char_for_point(point, self.deep, self.invert)).unwrap();
                 });
-                writeln!(&mut stdout, "").unwrap();
-            });
-        stdout.flush().unwrap();
+                writeln!(&mut stream, "").unwrap();
+            },
+            self.image
+        );
+        stream.flush().unwrap();
+    }
+
+    /// Writes the image to `stream`
+    pub fn to_stream(&self, mut stream: &mut dyn Write) {
+        impl_stream!(
+            |pixel| gray_point_for_pixel(pixel),
+            |point_row| {
+                point_row.for_each(|point| {
+                    write!(&mut stream, "{}", ascii_char_for_point(point, self.deep, self.invert)).unwrap();
+                });
+                writeln!(&mut stream, "").unwrap();
+            },
+            self.image
+        );
+        stream.flush().unwrap();
     }
 }
