@@ -11,3 +11,6 @@ Cargo.lock
 
 # Temporary files crated by intelliJ like IDEs
 .idea
+
+# uneeded project configs created by VSCode
+.vscode
