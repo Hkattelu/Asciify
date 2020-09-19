@@ -5,14 +5,6 @@
 # Asciify
 A rust library for converting images to a readable format on the command line
 
-You can import the library straight from this git repo by adding 
-
-```
-asciify = "0.1.4"
-```
-
-to your `Cargo.toml`.
-
 To use the code, simply construct a builder and set the properties desired.
 You can then choose to print the text straight to the console, or convert
 it to a string for later use:
